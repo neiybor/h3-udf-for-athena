@@ -2,7 +2,6 @@ package com.aws.athena.udf.h3;
 
 import com.uber.h3core.util.LatLng;
 import com.uber.h3core.H3Core;
-import com.uber.h3core.LengthUnit;
 import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.Assertions;
@@ -40,6 +39,8 @@ public class H3AthenaHandlerTest
         handler = new H3AthenaHandler();
         h3Core = H3Core.newInstance();
     }
+
+    @Test
     public void testlat_lng_to_cell() 
     {
         
@@ -74,6 +75,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void testlat_lng_to_cell_address() 
     {
         
@@ -107,6 +109,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void testget_icosahedron_faces() {
 
         final double latitude = 43.0;
@@ -126,7 +129,7 @@ public class H3AthenaHandlerTest
 
     }
 
-
+    @Test
     public void testgrid_disk() throws Exception {
         final double latitude = 43.0;
         final double longitude = -42;
@@ -161,6 +164,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void testgrid_ring_unsafe() throws Exception {
         final double latitude = 43.0;
         final double longitude = -42;
@@ -195,8 +199,7 @@ public class H3AthenaHandlerTest
         }
     }
 
-
-
+    @Test
     public void test_pentagons() {
         final double latitude = 43.0;
         final double longitude = -42;
@@ -226,6 +229,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void testh3_to_geo() {
         assertNull(handler.cell_to_lat_lng((Long)null));
 
@@ -253,6 +257,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void testcell_to_lat_lng_wkt() {
         assertNull(handler.cell_to_lat_lng_wkt((Long)null));
 
@@ -264,6 +269,7 @@ public class H3AthenaHandlerTest
     }
 
     /** Tests get_resolution functions. */
+    @Test
     public void testget_resolution() {
         final double latitude = 50.0;
         final double longitude = -43;
@@ -279,6 +285,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void test_get_base_cell_number() {
         final double latitude = 40.0;
         final double longitude = -42;
@@ -295,6 +302,7 @@ public class H3AthenaHandlerTest
         
     }
 
+    @Test
     public void teststring_to_h3_two_ways() {
 
         final double latitude = Math.random() * 180.0 - 90.0;
@@ -312,6 +320,7 @@ public class H3AthenaHandlerTest
 
 
     /** Tests cell_to_boundary_wkt functions  */
+    @Test
     public void testcell_to_boundary_wkt() {
         assertNull(handler.cell_to_boundary_wkt((Long)null));
         assertNull(handler.cell_to_boundary_wkt((String)null));
@@ -336,6 +345,7 @@ public class H3AthenaHandlerTest
 
     } 
 
+    @Test
     public void testgrid_path_cells() throws Exception {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -364,6 +374,7 @@ public class H3AthenaHandlerTest
 
     }
 
+    @Test
     public void testh3_parent() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -384,7 +395,7 @@ public class H3AthenaHandlerTest
 
     }
 
-
+    @Test
     public void testcell_to_center_child() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -405,6 +416,7 @@ public class H3AthenaHandlerTest
 
     }
 
+    @Test
     public void testcompact_uncompact() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -440,6 +452,7 @@ public class H3AthenaHandlerTest
 
     }
 
+    @Test
     public void testh3_descendants() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -477,6 +490,7 @@ public class H3AthenaHandlerTest
 
 
     /** Tests cell_to_boundary functions as well as cell_to_boundary_sys. */
+    @Test
     public void testcell_to_boundary() {
 
         assertNull(handler.cell_to_boundary((Long)null, ","));
@@ -534,6 +548,7 @@ public class H3AthenaHandlerTest
         }       
     }
 
+    @Test
     public void testis_valid_cell() {
         final double latitude = Math.random() * 180.0 - 90.0;
         final double longitude = Math.random() * 360.0 - 180.0;
@@ -549,6 +564,7 @@ public class H3AthenaHandlerTest
         assertFalse(handler.is_valid_cell((String)null));
     }
 
+    @Test
     public void testis_res_class_iii() {
         final long h3False = 622506764662964223L;
         final long h3True = 617420388352917503L;
@@ -563,15 +579,18 @@ public class H3AthenaHandlerTest
         assertFalse(handler.is_res_class_iii((String)null));
     }
 
+    @Test
     public void testpolygon_to_cells() {
-        final String polygonWKT = "POLYGON((43.604652 1.444209, 47.218371 -1.553621, 50.62925 3.05726, 48.864716 2.349014, 43.6961 7.27178, 43.604652 1.444209))";
+        final String polygonWKT = 
+            "POLYGON ((1.444209 43.604652, -1.553621 47.218371, 3.05726 50.62925, 2.349014 48.864716, 7.27178 43.6961, 1.444209 43.604652))";
         final List<LatLng> latLngPoints = List.of(new LatLng(43.604652,1.444209),
                                                       new LatLng(47.218371, -1.553621),
                                                       new LatLng(50.62925, 3.05726),
                                                       new LatLng(48.864716, 2.349014),
                                                       new LatLng(43.6961, 7.27178),
                                                       new LatLng(43.604652, 1.444209));
-        final String polygonWKTAlt = "POLYGON  ((43.604652 1.444209, 47.218371 -1.553621, 50.62925 3.05726, 48.864716 2.349014, 43.6961 7.27178, 43.604652 1.444209))";
+        final String polygonWKTAlt = 
+            "POLYGON ((1.444209 43.604652, -1.553621 47.218371, 3.05726 50.62925, 2.349014 48.864716, 7.27178 43.6961, 1.444209 43.604652))";
 
         final List<List<LatLng>>  empty = new LinkedList<>();
 
@@ -582,6 +601,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    // @Test
     public void testpolygon_to_cell_addresses() {
         final String polygonWKT = "POLYGON((43.604652 1.444209, 47.218371 -1.553621, 50.62925 3.05726, 48.864716 2.349014, 43.6961 7.27178, 43.604652 1.444209))";
         final List<LatLng> latLngPoints = List.of(new LatLng(43.604652,1.444209),

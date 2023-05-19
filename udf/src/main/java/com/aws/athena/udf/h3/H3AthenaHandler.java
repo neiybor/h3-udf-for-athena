@@ -12,24 +12,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 
 /** Lambda that hosts H3 UDFs */
 public class H3AthenaHandler extends UserDefinedFunctionHandler {
 
     private final H3Core h3Core;
-
     private static final String SOURCE_TYPE = "h3_athena_udf_handler";
-
     private static final String LAT = "lat";
-
     private static final String LNG = "lng";
-
     private static final String POLYGON = "POLYGON";
 
     public H3AthenaHandler() throws IOException {
@@ -46,13 +37,8 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *   @throws IllegalArgumentException latitude, longitude, or resolution are out of range.
      */
     public Long lat_lng_to_cell(Double lat, Double lng, Integer res) {
-        final Long result;
-        if (lat == null || lng == null || res == null) {
-            result = null;
-        } else {
-           result = h3Core.latLngToCell(lat, lng, res);
-        }
-        return result;
+        return (lat == null || lng == null || res == null) ? null : 
+            h3Core.latLngToCell(lat, lng, res);
     }
 
     /** Indexes the location at the specified resolution, returning index of the cell as String containing
@@ -64,13 +50,8 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *   @throws IllegalArgumentException latitude, longitude, or resolution are out of range.
      */
     public String lat_lng_to_cell_address(Double lat, Double lng, Integer res) {
-        final String result;
-        if (lat == null || lng == null || res == null) {
-            result = null;
-        } else {
-            result =  h3Core.latLngToCellAddress(lat, lng, res);
-        }
-        return result;
+        return (lat == null || lng == null || res == null) ? null : 
+            h3Core.latLngToCellAddress(lat, lng, res);
     }
 
     /** Finds the centroid of an index, and returns an array list of coordinates representing latitude and longitude 
@@ -80,31 +61,23 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @throws IllegalArgumentException when the index is out of range
      */
     public List<Double> cell_to_lat_lng(Long h3) {
-        final List<Double> result;
-        if (h3 == null) {
-            result = null;
-        } else {
-            final LatLng coord = h3Core.cellToLatLng(h3);
-            result = new ArrayList<>(Arrays. asList(coord.lat, coord.lng));
-        }
-	    return result;
+        if (h3 == null) { return null; } 
+
+        final LatLng coord = h3Core.cellToLatLng(h3);
+        return new ArrayList<>(Arrays.asList(coord.lat, coord.lng));
     }
 
      /** Finds the centroid of an index, and returns an array list of coordinates representing latitude and longitude 
      *  respectively.
-     *  @param h3Address the H3 index
+     *  @param h3 the H3 index
      *  @return List of Double of size 2 representing latitude and longitude. Null when the index is null.
      *  @throws IllegalArgumentException when the index is out of range
      */
-    public List<Double> cell_to_lat_lng(String h3Address) {
-        final List<Double> result;
-        if (h3Address == null) {
-            result = null;
-        } else {
-            final LatLng coord = h3Core.cellToLatLng(h3Address);
-            result = new ArrayList<>(Arrays. asList(coord.lat, coord.lng));
-        }
-    return result;
+    public List<Double> cell_to_lat_lng(String h3) {
+        if (h3 == null) { return null; } 
+        
+        final LatLng coord = h3Core.cellToLatLng(h3);
+        return new ArrayList<>(Arrays.asList(coord.lat, coord.lng));
     }
 
     /** Finds the centroid of an index, and returns a WKT of the centroid.
@@ -112,15 +85,11 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return the WKT of the centroid of an H3 index. Null when the index is null;
      *  @throws IllegalArgumentException when the index is out of range
      */
-    public String  cell_to_lat_lng_wkt(Long h3) {
-        final String result;
-        if (h3 == null) {
-            result = null;
-        } else {
-          final LatLng coord = h3Core.cellToLatLng(h3);
-          result = wktPoint(coord);
-        }
-        return result;        
+    public String cell_to_lat_lng_wkt(Long h3) {
+        if (h3 == null) { return null; }
+    
+        final LatLng coord = h3Core.cellToLatLng(h3);
+        return wktPoint(coord); 
     }
 
     /** Finds the centroid of an index, and returns a WKT of the centroid.
@@ -128,17 +97,12 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return the WKT of the centroid of an H3 index. Null when the index is null;
      *  @throws IllegalArgumentException when the index is out of range
      */
-    public String  cell_to_lat_lng_wkt(String h3) {
-        final String result;
-        if (h3 == null) {
-            result = null;
-        } else {
-          final LatLng coord = h3Core.cellToLatLng(h3);
-          result = wktPoint(coord);
-        }
-        return result;        
+    public String cell_to_lat_lng_wkt(String h3) {
+        if (h3 == null) { return null; }
+    
+        final LatLng coord = h3Core.cellToLatLng(h3);
+        return wktPoint(coord);      
     }
-
 
     /** Finds the boundary of an H3 cell.
      * @param h3 the H3 cell
@@ -148,17 +112,12 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @throws IllegalArgumentException  when address is out of range 
      */
     public List<String> cell_to_boundary(Long h3, String sep){
-        final List<String> result;
-        if (h3 == null) {
-            result = null;
-        } else {
-            result =  h3Core.cellToBoundary(h3).stream()
-                            .map(n-> pointsListStr(n, sep))
-                            .collect(Collectors.toList()); 
-        }
-        return result;
+        if (h3 == null) { return null;}
+    
+        return h3Core.cellToBoundary(h3).stream()
+            .map(n-> pointsListStr(n, sep))
+            .collect(Collectors.toList());
     }
-
 
     /** Finds the boundary of an H3 index for a given coordinate system (lat=latitude, or lng=longitude)
      * @param h3 the H3 index
@@ -168,23 +127,13 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @throws IllegalArgumentException  when address is out of range  or when coordSys is unknown.
      */
     public List<Double> cell_to_boundary_sys(Long h3, String coordSys) {
-        final List<Double> result;
-        if (LAT.equals(coordSys) || LNG.equals(coordSys)) {
-            if (h3 == null) {
-                result = null;
-            } else {
-                result =  h3Core.cellToBoundary(h3).stream()
-                                .map(n-> coordSys.equals(LAT) ? n.lat : n.lng)
-                                .collect(Collectors.toList()); 
-            }
-        } else if (coordSys == null) {
-            result = null;
-        } else {
-            throw new IllegalArgumentException("Unknown coord sys");
-        }
-        return result;
+        if (h3 == null || coordSys == null) { return null; }
+        else if (!LAT.equals(coordSys) && !LNG.equals(coordSys)) { throw new IllegalArgumentException("Unknown coord sys"); }
+        
+        return h3Core.cellToBoundary(h3).stream()
+                .map(n-> coordSys.equals(LAT) ? n.lat : n.lng)
+                .collect(Collectors.toList());
     }
-
 
     /** Finds the boundary of an H3 index. Returns the result in an array of WKT points.
      * @param h3 the H3 index
@@ -193,35 +142,23 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @throws IllegalArgumentException  when address is out of range.
      */
     public List<String> cell_to_boundary_wkt(Long h3){
-        final List<String> result;
-        if (h3 == null) {
-            result = null;
-        } else {
-            result =  h3Core.cellToBoundary(h3).stream()
-                            .map(H3AthenaHandler::wktPoint)
-                            .collect(Collectors.toList());
-        }
-        return result;        
-
+        return (h3 == null) ? null :
+            h3Core.cellToBoundary(h3).stream()
+                .map(H3AthenaHandler::wktPoint)
+                .collect(Collectors.toList());
     }
-
     
     /** Finds the boundary of an H3 index in a string form.
-     * @param h3Address the H3 index
+     * @param h3 the H3 index
      * @return the list of points representing the points in the boundary. Each returned list consists of two members, the first one is latitude, and the 
      * second one is longitude . Null when the h3Address is null.
      * @throws IllegalArgumentException  when address is out of range.
      */
-    public List<String> cell_to_boundary_wkt(String h3Address){
-        final List<String> result;
-        if (h3Address == null) {
-           result = null;
-        } else {
-           result = h3Core.cellToBoundary(h3Address).stream()
-                          .map(H3AthenaHandler::wktPoint)
-                          .collect(Collectors.toList());
-        }
-        return result;
+    public List<String> cell_to_boundary_wkt(String h3){
+        return (h3 == null) ? null :
+            h3Core.cellToBoundary(h3).stream()
+                .map(H3AthenaHandler::wktPoint)
+                .collect(Collectors.toList());
     
     }
     
@@ -233,23 +170,12 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @throws IllegalArgumentException  when address is out of range. 
      */
     public List<Double> cell_to_boundary_sys(String h3Address, String coordSys){
-        final List<Double> result;
-        if (LAT.equals(coordSys) || LNG.equals(coordSys)) {
-
-            if (h3Address == null) {
-                result = null;
-            }
-            else { 
-                result =  h3Core.cellToBoundary(h3Address).stream()
-                                .map(n-> coordSys.equals(LAT) ? n.lat : n.lng)
-                                .collect(Collectors.toList());
-            }
-        } else if (coordSys == null) {
-            result = null;
-        } else {
-            throw new IllegalArgumentException("Unknown coordSys");
-        }
-        return result;
+        if (h3Address == null || coordSys == null) { return null; }
+        else if (!LAT.equals(coordSys) && !LNG.equals(coordSys)) { throw new IllegalArgumentException("Unknown coord sys"); }
+        
+        return h3Core.cellToBoundary(h3Address).stream()
+                .map(n-> coordSys.equals(LAT) ? n.lat : n.lng)
+                .collect(Collectors.toList());
     }
 
     /** Finds the boundary of an H3 address.
@@ -260,18 +186,11 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @throws IllegalArgumentException  when address is out of range 
      */
     public List<String> cell_to_boundary(String h3Address, String sep){
-        final List<String> result;
-        if (h3Address == null || sep == null) {
-            result = null;
-        } else {
-            result =  h3Core.cellToBoundary(h3Address).stream()
+        return (h3Address == null || sep == null) ? null : 
+            h3Core.cellToBoundary(h3Address).stream()
                             .map(n-> pointsListStr(n, sep))
-                            .collect(Collectors.toList()); 
-        }
-        return result;
+                            .collect(Collectors.toList());
     }
-
-
 
     /** Returns the resolution of an index.
      *  @param h3 the H3 index.
@@ -279,28 +198,15 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @throws  IllegalArgumentException  when index is out of range.
      */
     public Integer get_resolution(Long h3){
-        final Integer result;
-        if (h3 == null) {
-            result = null;
-        } else {
-            result = h3Core.getResolution(h3);
-        }
-        return result;
+        return h3 == null ? null : h3Core.getResolution(h3);
     }
-
 
     /** Returns the resolution of an index.
      *  @param h3Address the H3 index in string form.
      *  @return the resolution. Null when h3Address is null.
      */
     public Integer get_resolution(String h3Address){
-        final Integer result;
-        if (h3Address == null) {
-            result = null;
-        } else {
-            result =  h3Core.getResolution(h3Address);
-        }
-        return result;
+        return h3Address == null ? null : h3Core.getResolution(h3Address);
     }
 
     /** Returns the base cell number of the index.
@@ -447,14 +353,7 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *   @return the h3 indexes. 
      */  
     public List<Long> grid_path_cells(Long start, Long end) {
-        List<Long> result;
-        if (start == null || end == null) {
-            result =  null;
-        } else {
-            result = h3Core.gridPathCells(start, end);
-        }
-        return result;
-
+        return (start == null || end == null) ? null : h3Core.gridPathCells(start, end);
     }
 
     /** Given two H3 indexes, return the line of indexes between them (inclusive).
@@ -462,17 +361,9 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *   @param end the h3 address of end of the line.
      *   @return the h3 addresses 
      */
-    public List<String> grid_path_cells(String startAddress, String endAddress)  {
-        List<String> result;
-        if (startAddress == null || endAddress == null) {
-            result = null;
-        }
-        else {
-           result = h3Core.gridPathCells(startAddress, endAddress);
-        }
-        return result;
+    public List<String> grid_path_cells(String start, String end)  {
+        return (start == null || end == null) ? null : h3Core.gridPathCells(start, end);
     }
-
     
      /** Returns the distance in grid cells between the two addresses.
      *   Returns a negative number if finding the distance failed. Finding the distance can fail because the two indexes are not 
@@ -482,15 +373,11 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return the distance.
      */
     public Long grid_distance(Long a, Long b){
-        final Long result;
-        if (a == null || b == null) {
-            result =  null;
-        } else if (h3Core.getResolution(a) == h3Core.getResolution(b)) {
-            result =  h3Core.gridDistance(a, b);
-        } else {
+        if (a == null || b == null) { return  null; }
+        else if (h3Core.getResolution(a) != h3Core.getResolution(b)) {
             throw new IllegalArgumentException("Cannot compute distance of two indexes from different resolutions");
-        } 
-        return result;       
+        }
+        return h3Core.gridDistance(a, b);
     }
 
     /** Returns the distance in grid cells between the two addresses.
@@ -501,15 +388,11 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return the distance.
      */
     public Long grid_distance(String a, String b) {
-        final Long result;
-        if (a == null || b == null) {
-            result =  null;
-        } else if (h3Core.getResolution(a) == h3Core.getResolution(b)) {
-            result = h3Core.gridDistance(a, b);
-        } else {
+        if (a == null || b == null) { return  null; }
+        else if (h3Core.getResolution(a) != h3Core.getResolution(b)) {
             throw new IllegalArgumentException("Cannot compute distance of two indexes from different resolutions");
         }
-        return result;
+        return h3Core.gridDistance(a, b);
     }
 
     /** Returns the direct parent (parent resolution = resolution -1) index containing h.
@@ -535,19 +418,14 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
       * @return parent index containing h or null when h3 is null.
       */
     public List<Long> cell_to_parents(Long h3) {
-        final List<Long> result;
-        if (h3 == null) {
-            result = null;
-        }
-        else {
-            result = new LinkedList<>();
-            for (int res = get_resolution(h3) - 1; res >= 0 ; --res) {
-                result.add(cell_to_parent(h3, res));
-            }
+        if (h3 == null) { return null; }
+        
+        final List<Long> result = new LinkedList<>();
+        for (int res = get_resolution(h3) - 1; res >= 0 ; --res) {
+            result.add(cell_to_parent(h3, res));
         }
         return result;
     }
-
 
     /** Returns the parent (coarser) index containing h3Address. 
      *  @param h3Address the h3 address of an h3 cell.
@@ -556,13 +434,8 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * 
      */
     public String cell_to_parent(String h3Address, Integer parentRes) {
-        final String result;
-        if (h3Address == null || parentRes == null){
-            result = null;
-        } else {
-            result = h3Core.cellToParentAddress(h3Address, parentRes);
-        }
-        return result;
+        return (h3Address == null || parentRes == null) ? null :
+            h3Core.cellToParentAddress(h3Address, parentRes);
     }
 
     /** Returns all the parents up to resolution 0. 
@@ -570,19 +443,14 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
       * @return parent index containing h or null when h3 is null.
       */
     public List<String> cell_to_parents(String h3Address) {
-        final List<String> result;
-        if (h3Address == null) {
-            result = null;
-        }
-        else {
-            result = new LinkedList<>();
-            for (int res = h3Core.getResolution(h3Address) - 1; res >= 0 ; --res) {
-                result.add(cell_to_parent(h3Address, res));
-            }
+        if (h3Address == null) { return null; }
+        
+        final List<String> result = new LinkedList<>();
+        for (int res = h3Core.getResolution(h3Address) - 1; res >= 0 ; --res) {
+            result.add(cell_to_parent(h3Address, res));
         }
         return result;
     }
-
 
     /** Returns the direct parent (parent resolution = resolution -1) index containing h.
       * @param h the h3 index.
@@ -618,16 +486,12 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return the h3 indexes of the children
      */
     public List<Long> cell_to_descendants(Long h3, Integer depth) {
-        final List<Long> result;
-
-        if (h3 == null || depth == null || depth <= 0) {
-            result = null;
-        }  else {
-            final int resolution = get_resolution(h3);
-            result = new LinkedList<>();
-            for (int i = 1; i <= depth; ++i) {
-                result.addAll(cell_to_children(h3, resolution + i));
-            }
+        if (h3 == null || depth == null || depth <= 0) { return null; }
+        
+        final int resolution = get_resolution(h3);
+        final List<Long> result = new LinkedList<>();
+        for (int i = 1; i <= depth; ++i) {
+            result.addAll(cell_to_children(h3, resolution + i));
         }
         return result;
     }
@@ -639,16 +503,12 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return the h3 indexes of the children
      */
     public List<String> cell_to_descendants(String h3Address, Integer depth) {
-        final List<String> result;
-
-        if (h3Address == null || depth == null || depth <= 0) {
-            result = null;
-        }  else {
-            final int resolution = get_resolution(h3Address);
-            result = new LinkedList<>();
-            for (int i = 1; i <= depth; ++i) {
-                result.addAll(cell_to_children(h3Address, resolution + i));
-            }
+        if (h3Address == null || depth == null || depth <= 0) { return null; }
+        
+        final int resolution = get_resolution(h3Address);
+        final List<String> result = new LinkedList<>();
+        for (int i = 1; i <= depth; ++i) {
+            result.addAll(cell_to_children(h3Address, resolution + i));
         }
         return result;
     }
@@ -672,37 +532,26 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     }
 
     public List<Long> cell_to_center_descendants(Long h3, Integer depth) {
-        final List<Long> result;
-
-        if (h3 == null || depth == null) {
-            result = null;
-        } else {
-            result = new LinkedList<>();
-            for (int i = 1; i <= depth; ++i) {
-                result.add(cell_to_center_child(
-                                h3, 
-                                get_resolution(h3) + i));
-            }
+        if (h3 == null || depth == null) { return null; }
+        
+        final int resolution = get_resolution(h3);
+        final List<Long> result = new LinkedList<>();
+        for (int i = 1; i <= depth; ++i) {
+            result.add(cell_to_center_child(h3, resolution + i));
         }
         return result;
     }
 
     public List<String> cell_to_center_descendants(String h3Address, Integer depth) {
-        final List<String> result;
-
-        if (h3Address == null || depth == null) {
-            result = null;
-        } else {
-            result = new LinkedList<>();
-            for (int i = 1; i <= depth; ++i) {
-                result.add(cell_to_center_child(
-                                h3Address, 
-                                get_resolution(h3Address) + i));
-            }
+        if (h3Address == null || depth == null) { return null; } 
+        
+        final int resolution = get_resolution(h3Address);
+        final List<String> result = new LinkedList<>();
+        for (int i = 1; i <= depth; ++i) {
+            result.add(cell_to_center_child(h3Address, resolution + i));
         }
         return result;
     }
-
  
     /** Returns the center child (finer) index contained by h at resolution childRes.
      * @param h3 the h3 index
@@ -723,7 +572,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     public List<Long> compact_cells(List<Long> h3){
         return h3 == null ? null : h3Core.compactCells(h3);
     }
-
  
     /** Compacts the set h3Set of indexes as best as possible, into the array compacted set. 
      *  This function compacts a set of cells of the same resolution into a set of cells across multiple 
@@ -745,7 +593,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     public List<Long> uncompact_cells(List<Long> h3, Integer res) {
         return h3 == null || res == null ? null : h3Core.uncompactCells(h3, res);
     }
- 
 
     /** This function uncompacts a compacted set of H3 cells to indices of the target resolution.
      *  @param h3 the list of indices, may be in different resolutions
@@ -778,10 +625,10 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                 for (final String coordinates:strippedPolygon.substring(2, strippedPolygon.length() - 2).split(",")) {
                     
                     final String[] splitCoordinates = coordinates.trim().split("\\s+");
+                    Double lat = Double.parseDouble(splitCoordinates[1]);
+                    Double lng = Double.parseDouble(splitCoordinates[0]);
 
-                    geoCoordPoints.add(new LatLng(
-                                            Double.parseDouble(splitCoordinates[0]),
-                                            Double.parseDouble(splitCoordinates[1])));
+                    geoCoordPoints.add(new LatLng(lat, lng));
                 }
                 final List<List<LatLng>> geoCoordHoles = new ArrayList<>();
                 result = h3Core.polygonToCells(geoCoordPoints, geoCoordHoles, res);
@@ -790,7 +637,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
             }
             
         }
-
         return result;
     }
     
@@ -805,30 +651,35 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
 
         if (polygonWKT == null || res == null) {
             result = null;
+            System.out.println("polygonWKT is null or res is null");
         } else {
+            System.out.println("Starting loop");
             final List<LatLng> geoCoordPoints = new LinkedList<>();
 
             final String trimmed = polygonWKT.trim();
 
             if (trimmed.startsWith(POLYGON) && trimmed.endsWith("))")) {
+                System.out.println("Valid polygon");
                 final String strippedPolygon  = trimmed.substring(POLYGON.length()).trim();
-                final String [] allCoordinates = strippedPolygon.substring(2, strippedPolygon.length() - 2)
-                                                                .split(",");
+                final String [] allCoordinates = strippedPolygon.substring(2, strippedPolygon.length() - 2).split(",");
 
+                System.out.println("Number of coordinates found: " + allCoordinates.length);
                 for (final String coordinates : allCoordinates) {
 
                     final String[] splitCoordinates = coordinates.trim().split("\\s+");
+                    Double lat = Double.parseDouble(splitCoordinates[1]);
+                    Double lng = Double.parseDouble(splitCoordinates[0]);
 
-                    geoCoordPoints.add(
-                        new LatLng(Double.parseDouble(splitCoordinates[0]), 
-                                     Double.parseDouble(splitCoordinates[1])));
+                    geoCoordPoints.add(new LatLng(lat, lng));
                 }
                 final List<List<LatLng>> geoCoordHoles = new ArrayList<>();
+
                 result = h3Core.polygonToCellAddresses(geoCoordPoints, geoCoordHoles, res);
+                System.out.println("Number of results found: " + result.size());
+
             } else {
                 throw new IllegalArgumentException("invalid polygonWKT");
             }
-            
         }
         return result;
     }
@@ -869,11 +720,9 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                         else {
                             multiPolygonWKT.append(", ");
                         }
-
-                        multiPolygonWKT.append(coord.lat).append(" ").append(coord.lng);
+                        multiPolygonWKT.append(coord.lng).append(" ").append(coord.lat);
                     }
                     multiPolygonWKT.append(")");
-
                 }
                 multiPolygonWKT.append(")");
             }
@@ -889,7 +738,7 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return WKT Polygon
      */
     public String cells_to_multi_polygon(List<Long> h3, Boolean geoJson) {
-        return geoJson == null? null : cellsToMultiPolygon(h3, null, geoJson);
+        return geoJson == null ? null : cellsToMultiPolygon(h3, null, geoJson);
     }
 
     /** Gets a multipolygon WKT given an h3 set. 
@@ -898,9 +747,8 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return WKT Polygon
      */
     public String cell_addresses_to_multi_polygon(List<String> h3Addresses, Boolean geoJson) {
-        return geoJson == null? null : cellsToMultiPolygon(null, h3Addresses, geoJson);
+        return geoJson == null ? null : cellsToMultiPolygon(null, h3Addresses, geoJson);
     }
-
 
     /** Returns whether or not the provided H3Indexes are neighbors.
      *  @param origin the first h3 index
@@ -908,11 +756,8 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return true when the two h3 indexes are neighbors.
      */
     public Boolean are_neighbor_cells(Long origin, Long destination){
-        return origin == null || destination == null ? null : 
-                                                       h3Core.areNeighborCells(
-                                                            origin, destination
-                                                       );
-     
+        return (origin == null || destination == null) ? null : 
+            h3Core.areNeighborCells(origin, destination);
     }
 
     /** Returns whether or not the provided H3 addresses are neighbors.
@@ -921,8 +766,8 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @return true when the two h3 adresses are neighbors.
      */
     public Boolean are_neighbor_cells(String origin, String destination){
-        return origin == null || destination == null ? null : h3Core.areNeighborCells(
-                                                                origin, destination);
+        return (origin == null || destination == null) ? null : 
+            h3Core.areNeighborCells(origin, destination);
     }
 
     /** Returns a unidirectional edge H3 index based on the provided origin and destination.
@@ -942,7 +787,7 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      */
     public String cells_to_directed_edge(String origin, String destination) {
         return origin == null || destination == null ? null :
-                                    h3Core.cellsToDirectedEdge(origin, destination);
+            h3Core.cellsToDirectedEdge(origin, destination);
       }
 
     /** Determines if the provided H3Index is a valid unidirectional edge index.
@@ -952,7 +797,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     public Boolean is_valid_directed_edge(Long edge){
         return edge != null && h3Core.isValidDirectedEdge(edge);
     }
-
 
     /** Determines if the provided H3 edge address is a valid unidirectional edge index.
      * @param edgeAddress the edge address
@@ -984,12 +828,10 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
         return edge == null ? null : h3Core.getDirectedEdgeDestination(edge);
     }
 
-  
     /** Returns the destination hexagon from the unidirectional edge address. */
     public String get_directed_edge_destination(String edgeAddress){
-        return edgeAddress == null ? null :
-                                        h3Core.getDirectedEdgeDestination(
-                                            edgeAddress);
+        return edgeAddress == null ? null : 
+            h3Core.getDirectedEdgeDestination(edgeAddress);
     }
 
     /** Returns origin and destination hexagons from a unidrectional edge. 
@@ -997,14 +839,8 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @return list of two elements , the first one is the origin, and the second one is the destination.
      */
     public List<Long> get_directed_edge_origin_destination(Long edge) {
-        final List<Long> result;
-        if (edge == null) {
-            result = null;
-        } else {
-            result = List.of(get_directed_edge_origin(edge),
-                             get_directed_edge_destination(edge));
-        }
-        return result;
+        return (edge == null) ? null :
+            List.of(get_directed_edge_origin(edge), get_directed_edge_destination(edge));
     }
 
     /** Returns origin and destination hexagons from a unidrectional edge. 
@@ -1012,17 +848,9 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @return array of two elements , the first one is the origin, and the second one is the destination.
      */
     public List<String> get_directed_edge_origin_destination(String edge) {
-        final List<String> result;
-        if (edge == null) {
-            result = null;
-        } else {
-            result=List.of(get_directed_edge_origin(edge),
-                           get_directed_edge_destination(edge));
-                    
-        }
-        return result;
+        return (edge == null) ? null :
+            List.of(get_directed_edge_origin(edge), get_directed_edge_destination(edge));
     }
-
 
     /** Provides all of the unidirectional edges from the current H3Index. 
      *  @param h3 the h3 index.
@@ -1032,7 +860,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     public List<Long> origin_to_directed_edges(Long h3){
         return h3 == null ? null : h3Core.originToDirectedEdges(h3);
     }
-    
 
     /** Provides all of the unidirectional edges from the current H3 address. 
      *  @param h3 the h3 address 
@@ -1042,15 +869,15 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
         return h3 == null ? null : h3Core.originToDirectedEdges(h3);
     }
 
-
     /** Get the vertices of a given edge as a list of WKT oints
      *  @param edge an edge
      *  @return all points in WKT Points format.
      */
     public List<String> directed_edge_to_boundary(Long edge){
-        return edge == null ?  null : h3Core.directedEdgeToBoundary(edge).stream()
-                                               .map(H3AthenaHandler::wktPoint)
-                                               .collect(Collectors.toList());
+        return edge == null ? null : 
+            h3Core.directedEdgeToBoundary(edge).stream()
+                .map(H3AthenaHandler::wktPoint)
+                .collect(Collectors.toList());
     }
 
     /** Produces local IJ coordinates for an H3 index anchored by an origin.
@@ -1059,14 +886,10 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @param h3 the cell.
      */
     public List<Integer> cell_to_local_ij(Long origin, Long h3) {
-        final List<Integer> result;
-        if (origin == null || h3 == null) {
-            result = null;
-        } else {
-            final CoordIJ coord = h3Core.cellToLocalIj(origin, h3);
-            result = new ArrayList<>(Arrays. asList(coord.i, coord.j));
-        }
-        return result;
+        if (origin == null || h3 == null) { return null; }
+
+        final CoordIJ coord = h3Core.cellToLocalIj(origin, h3);
+        return new ArrayList<>(Arrays.asList(coord.i, coord.j));
     }
 
     /** Produces local IJ coordinates for an H3 index anchored by an origin.
@@ -1075,14 +898,10 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @param h3 the cell.
      */
     public List<Integer> cell_to_local_ij(String origin, String h3) {
-        final List<Integer> result;
-        if (origin == null || h3 == null) {
-            result = null;
-        } else {
-            final CoordIJ coord = h3Core.cellToLocalIj(origin, h3);
-            result = new ArrayList<>(Arrays. asList(coord.i, coord.j));
-        }
-        return result;
+        if (origin == null || h3 == null) { return null; }
+
+        final CoordIJ coord = h3Core.cellToLocalIj(origin, h3);
+        return new ArrayList<>(Arrays.asList(coord.i, coord.j));
     }
 
     /** Provides all of the unidirectional edges from the current H3Index. 
@@ -1097,16 +916,15 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                                                     .collect(Collectors.toList());
     }
 
-
     /** Average hexagon area in unit of area at the given resolution. 
      *  @param res resolution 
      *  @param unit the unit of area, km2 or m2.
      *  @return the area. 
      */
     public Double cell_area(Integer res, String unit) {
-        return  res == null || unit == null ? null : h3Core.cellArea(res, AreaUnit.valueOf(unit));
+        return res == null || unit == null ? null : 
+            h3Core.cellArea(res, AreaUnit.valueOf(unit));
     }
-
 
     /** Average hexagon edge length  at a given resolution.
      *  @param res the resolution
@@ -1115,11 +933,10 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  
      */
     public Double get_hexagon_edge_length_avg(Integer res, String unit){
-        return res == null || unit == null ? null : h3Core.getHexagonEdgeLengthAvg(res, LengthUnit.valueOf(unit));
+        return res == null || unit == null ? null : 
+            h3Core.getHexagonEdgeLengthAvg(res, LengthUnit.valueOf(unit));
     }
 
-
-   
     /** Returns the total count of hexagons in the world at a given resolution. 
      * @param res the resolution.
      * @return the number of hexagons at a given resolution.
@@ -1127,7 +944,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     public Long get_num_cells(Integer res){
         return res == null ? null : h3Core.getNumCells(res);
     }
-
 
     /** Returns all the resolution 0 h3 indexes.
      *  @param dummy a dummy parameter, ignored.
