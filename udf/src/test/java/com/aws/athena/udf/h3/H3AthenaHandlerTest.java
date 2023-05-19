@@ -351,27 +351,31 @@ public class H3AthenaHandlerTest
         final double longitude = -4.3;
 
         for (int res = 2; res < 16; ++res) {
-        
             final Long h3 = handler.lat_lng_to_cell(latitude, longitude, res);
-            final String h3Address = handler.lat_lng_to_cell_address(latitude, longitude, res);
-
             for (final Long index : handler.grid_disk(h3, 5)) {
                 final List<Long> line = handler.grid_path_cells(h3, index);
-                final List<Long> lineAddr = handler.grid_path_cells(h3, index);
-
                 assertEquals(line.get(0), h3);
                 assertEquals(line.get(line.size() -1), index);
                 
                 for (int i = 0; i < line.size(); ++i) {
                     assertEquals(i, handler.grid_distance(h3, line.get(i)));
-                    assertEquals(i, handler.grid_distance(h3, lineAddr.get(i)));
+                }
+            }
+
+            final String h3Address = handler.lat_lng_to_cell_address(latitude, longitude, res);
+            for (final String index : handler.grid_disk(h3Address, 5)) {
+                final List<String> lineAddr = handler.grid_path_cells(h3Address, index);
+                assertEquals(lineAddr.get(0), h3Address);
+                assertEquals(lineAddr.get(lineAddr.size() -1), index);
+                
+                for (int i = 0; i < lineAddr.size(); ++i) {
+                    assertEquals(i, handler.grid_distance(h3Address, lineAddr.get(i)));
                 }
             }
         }
         assertNull(handler.grid_path_cells(handler.lat_lng_to_cell(latitude, longitude, 5), null));
         assertNull(handler.grid_path_cells((Long)null, handler.lat_lng_to_cell(latitude, longitude, 3)));
         assertNull(handler.grid_path_cells((String)null, handler.lat_lng_to_cell_address(latitude, longitude, 3)));
-
     }
 
     @Test
