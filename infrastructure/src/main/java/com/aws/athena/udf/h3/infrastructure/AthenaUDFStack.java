@@ -58,7 +58,7 @@ public class AthenaUDFStack extends Stack {
 
 
         // Creates the UDF.
-        final Function udf = new Function(this, "H3AthenaHandler", FunctionProps.builder()
+        new Function(this, "H3AthenaHandler", FunctionProps.builder()
                 .runtime(Runtime.JAVA_11)
                 .code(
                         Code.fromAsset("../", 
