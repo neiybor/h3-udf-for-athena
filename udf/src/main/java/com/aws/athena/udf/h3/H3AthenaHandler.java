@@ -10,9 +10,16 @@ import com.uber.h3core.util.CoordIJ;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import mil.nga.sf.LineString;
+import mil.nga.sf.MultiPolygon;
+import mil.nga.sf.Point;
+import mil.nga.sf.Polygon;
+import mil.nga.sf.wkt.GeometryReader;
 
 /** Lambda that hosts H3 UDFs */
 public class H3AthenaHandler extends UserDefinedFunctionHandler {
@@ -22,6 +29,7 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     private static final String LAT = "lat";
     private static final String LNG = "lng";
     private static final String POLYGON = "POLYGON";
+    private static final String MULTIPOLYGON = "MULTIPOLYGON";
 
     public H3AthenaHandler() throws IOException {
         super(SOURCE_TYPE);
@@ -608,81 +616,122 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      *  @param polygon the polygon WKT
      *  @param res the resolution.
      *  @return H3 indexes
+     *  @throws IOException when failing to read WKT
      */
-    public List<Long> polygon_to_cells(String polygonWKT, Integer res) {
+    public List<Long> polygon_to_cells(String polygonWKT, Integer res) throws IOException {
         final List<Long> result;
-
-        if (polygonWKT == null || res == null) {
-            result = null;
-        } else {
-            final List<LatLng> geoCoordPoints = new LinkedList<>();
+        if (polygonWKT == null || res == null) { result = null; } 
+        else {
             final String trimmed = polygonWKT.trim();
             if (trimmed.startsWith(POLYGON) && trimmed.endsWith("))")) {
-
-                final String strippedPolygon  = trimmed.substring(POLYGON.length()).trim();
-
+                final Polygon polygon = GeometryReader.readGeometry(trimmed, Polygon.class);
+                result = sf_polygon_to_cells(polygon, res);
+            } else if (trimmed.startsWith(MULTIPOLYGON) && trimmed.endsWith(")))")) {
+                final HashSet<Long> resultSet = new HashSet<Long>();
+                final MultiPolygon mp = GeometryReader.readGeometry(trimmed, MultiPolygon.class);
                 
-                for (final String coordinates:strippedPolygon.substring(2, strippedPolygon.length() - 2).split(",")) {
-                    
-                    final String[] splitCoordinates = coordinates.trim().split("\\s+");
-                    Double lat = Double.parseDouble(splitCoordinates[1]);
-                    Double lng = Double.parseDouble(splitCoordinates[0]);
-
-                    geoCoordPoints.add(new LatLng(lat, lng));
+                for (final Polygon p : mp.getPolygons()) {
+                    resultSet.addAll(sf_polygon_to_cells(p, res));
                 }
-                final List<List<LatLng>> geoCoordHoles = new ArrayList<>();
-                result = h3Core.polygonToCells(geoCoordPoints, geoCoordHoles, res);
+                
+                result = new LinkedList<Long>(resultSet);
             } else {
                 throw new IllegalArgumentException("invalid polygonWKT");
             }
-            
         }
         return result;
+    }
+
+    /**
+     * 
+     * @param Polygon the Simple Feature Polygon
+     * @param res the resolution
+     * @return H3 indexes
+     */
+    private List<Long> sf_polygon_to_cells(Polygon pg, Integer res) {
+        final List<LatLng> exteriorCoordPoints = new LinkedList<>();
+        final List<List<LatLng>> holeLists = new LinkedList<>();
+
+        for (final Point p : pg.getExteriorRing().getPoints()) {
+            Double lng = p.getX();
+            Double lat = p.getY();
+            exteriorCoordPoints.add(new LatLng(lat, lng));
+        }
+
+        // For each interior ring, create a hole
+        for (int r = 0; r < pg.numInteriorRings() ; r++) {
+            final LineString ir = pg.getInteriorRing(r);
+            final List<LatLng> interiorCoordPoints = new LinkedList<>();
+            for (final Point p : ir.getPoints()) {
+                Double lng = p.getX();
+                Double lat = p.getY();
+                interiorCoordPoints.add(new LatLng(lat, lng));
+            }
+            holeLists.add(interiorCoordPoints);
+        }
+        return h3Core.polygonToCells(exteriorCoordPoints, holeLists, res);
+    }
+
+    /** Receives a polygon WKT without holes, and resolution, and find all H3 objects whose center located inside the polygon
+     *  @param polygon the polygon WKT
+     *  @param res the resolution.
+     *  @return H3 indexes
+     *  @throws IOException when failing to read WKT
+     */
+    public List<String> polygon_to_cell_addresses(String polygonWKT, Integer res) throws IOException {
+        final List<String> result;
+        if (polygonWKT == null || res == null) { result = null; } 
+        else {
+            final String trimmed = polygonWKT.trim();
+            if (trimmed.startsWith(POLYGON) && trimmed.endsWith("))")) {
+                final Polygon polygon = GeometryReader.readGeometry(trimmed, Polygon.class);
+                result = sf_polygon_to_cell_addresses(polygon, res);
+            } else if (trimmed.startsWith(MULTIPOLYGON) && trimmed.endsWith(")))")) {
+                final HashSet<String> resultSet = new HashSet<String>();
+                final MultiPolygon mp = GeometryReader.readGeometry(trimmed, MultiPolygon.class);
+                
+                for (final Polygon p : mp.getPolygons()) {
+                    resultSet.addAll(sf_polygon_to_cell_addresses(p, res));
+                }
+                
+                result = new LinkedList<String>(resultSet);
+            } else {
+                throw new IllegalArgumentException("invalid polygonWKT");
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 
+     * @param Polygon the Simple Feature Polygon
+     * @param res the resolution
+     * @return H3 indexes
+     */
+    private List<String> sf_polygon_to_cell_addresses(Polygon pg, Integer res) {
+        final List<LatLng> exteriorCoordPoints = new LinkedList<>();
+        final List<List<LatLng>> holeLists = new LinkedList<>();
+
+        for (final Point p : pg.getExteriorRing().getPoints()) {
+            Double lng = p.getX();
+            Double lat = p.getY();
+            exteriorCoordPoints.add(new LatLng(lat, lng));
+        }
+
+        // For each interior ring, create a hole
+        for (int r = 0; r < pg.numInteriorRings() ; r++) {
+            final LineString ir = pg.getInteriorRing(r);
+            final List<LatLng> interiorCoordPoints = new LinkedList<>();
+            for (final Point p : ir.getPoints()) {
+                Double lng = p.getX();
+                Double lat = p.getY();
+                interiorCoordPoints.add(new LatLng(lat, lng));
+            }
+            holeLists.add(interiorCoordPoints);
+        }
+        return h3Core.polygonToCellAddresses(exteriorCoordPoints, holeLists, res);
     }
     
-    /** Receives a polygon WKT (without holes) and returns all the H3 polygon at resolution res whose center located inside
-     *  the polygon.
-     *  @param polygon the WKT points of polygon.
-     *  @param res the resolution.
-     *  @param H3 addresses
-     */
-    public List<String> polygon_to_cell_addresses(String polygonWKT, Integer res) {
-        final List<String> result;
-
-        if (polygonWKT == null || res == null) {
-            result = null;
-            System.out.println("polygonWKT is null or res is null");
-        } else {
-            System.out.println("Starting loop");
-            final List<LatLng> geoCoordPoints = new LinkedList<>();
-
-            final String trimmed = polygonWKT.trim();
-
-            if (trimmed.startsWith(POLYGON) && trimmed.endsWith("))")) {
-                System.out.println("Valid polygon");
-                final String strippedPolygon  = trimmed.substring(POLYGON.length()).trim();
-                final String [] allCoordinates = strippedPolygon.substring(2, strippedPolygon.length() - 2).split(",");
-
-                System.out.println("Number of coordinates found: " + allCoordinates.length);
-                for (final String coordinates : allCoordinates) {
-
-                    final String[] splitCoordinates = coordinates.trim().split("\\s+");
-                    Double lat = Double.parseDouble(splitCoordinates[1]);
-                    Double lng = Double.parseDouble(splitCoordinates[0]);
-
-                    geoCoordPoints.add(new LatLng(lat, lng));
-                }
-                final List<List<LatLng>> geoCoordHoles = new ArrayList<>();
-
-                result = h3Core.polygonToCellAddresses(geoCoordPoints, geoCoordHoles, res);
-                System.out.println("Number of results found: " + result.size());
-
-            } else {
-                throw new IllegalArgumentException("invalid polygonWKT");
-            }
-        }
-        return result;
-    }
      /** Gets a multipolygon WKT given an h3 set.  Either h3 or h3Address parameter can be defined, not both.
      *  @param h3 h3 set.
      *  @param h3Address set.  
@@ -709,7 +758,11 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                 }
                 multiPolygonWKT.append("(");
 
+                boolean firstList = true;
                 for (final List<LatLng> points: polygon) {
+                    if (firstList) { firstList = false; }
+                    else { multiPolygonWKT.append(", "); }
+
                     multiPolygonWKT.append("(");
 
                     boolean firstPoint = true;

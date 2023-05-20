@@ -14,6 +14,8 @@
     <junit.jupiter.version>5.8.1</junit.jupiter.version>
     <junit.platform.version>1.8.1</junit.platform.version>
     <slf4j.version>1.7.30</slf4j.version>
+    <simple-features-wkt.version>1.2.2</simple-features-wkt.version>
+    <simple-features.version>2.2.1</simple-features.version>
   </properties>
   <dependencies>
     <dependency>
@@ -65,9 +67,18 @@
             <version>${junit.platform.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>mil.nga</groupId>
+            <artifactId>sf</artifactId>
+            <version>${simple-features.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mil.nga.sf</groupId>
+            <artifactId>sf-wkt</artifactId>
+            <version>${simple-features-wkt.version}</version>
+        </dependency>
   </dependencies>
   <build>
-
     <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
