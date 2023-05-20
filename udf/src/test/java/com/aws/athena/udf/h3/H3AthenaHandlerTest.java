@@ -21,7 +21,7 @@ import java.util.Random;
 public class H3AthenaHandlerTest 
 {
     final private static String LNG = "lng";
-    final private static String LAT = "lat";   
+    final private static String LAT = "lat";
     final private H3AthenaHandler handler;
     final private H3Core h3Core;
 
