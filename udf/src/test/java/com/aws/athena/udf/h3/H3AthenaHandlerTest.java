@@ -1,6 +1,10 @@
 package com.aws.athena.udf.h3;
 
 import com.uber.h3core.util.LatLng;
+
+import mil.nga.sf.MultiPolygon;
+import mil.nga.sf.wkt.GeometryReader;
+
 import com.uber.h3core.H3Core;
 import org.junit.jupiter.api.Test;
 
@@ -12,9 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 /**
  * Unit test for simple App.
  */
@@ -564,7 +570,7 @@ public class H3AthenaHandlerTest
         }
     }
 
-    // @Test
+    @Test
     public void testpolygon_to_cell_addresses() throws Exception{
         final String polygonWKT = 
             "POLYGON ((1.444209 43.604652, -1.553621 47.218371, 3.05726 50.62925, 2.349014 48.864716, 7.27178 43.6961, 1.444209 43.604652))";
@@ -618,12 +624,15 @@ public class H3AthenaHandlerTest
         ));
 
         for (int i = 0; i <= 9 ;++i) {
-            assertEquals(h3Core.polygonToCellAddresses(multiPolyLatLngPoints, holeLists, i), handler.polygon_to_cell_addresses(multiPolygonWKT, i));
+            Set<String> h3CoreSet = new HashSet<String>(h3Core.polygonToCellAddresses(multiPolyLatLngPoints, holeLists, i));
+            Set<String> handlerSet = new HashSet<String>(handler.polygon_to_cell_addresses(multiPolygonWKT, i));
+            assertEquals(h3CoreSet, handlerSet);
         }
         
     }
 
-    public void testcells_to_multipolygon() {
+    @Test
+    public void testcells_to_multipolygon() throws IOException {
         final List<Long> h3Indexes = List.of( 613498908116516863L,
                                                613499565410091007L,
                                                613498908185722879L,
@@ -651,25 +660,17 @@ public class H3AthenaHandlerTest
                                                613498908219277311L,
                                                613499565422673919L );
         final List<List<List<LatLng>>> polygon1 = h3Core.cellsToMultiPolygon(h3Indexes, true);
-        final String polygon2 = handler.cells_to_multi_polygon(h3Indexes, true);
-        final String polygon2Split[] = polygon2.substring("MULTIPOLYGON (((".length(), polygon2.length() - 3).split("\\)\\), \\(\\(");
+        MultiPolygon polygon2 = GeometryReader.readGeometry(handler.cells_to_multi_polygon(h3Indexes, true), MultiPolygon.class);
 
-        assertEquals(polygon2Split.length, polygon1.size());
+        assertEquals(polygon2.numPolygons(), polygon1.size());
+        assertEquals(polygon2.numPolygons(), 2);
 
-        for (int i = 0; i < polygon2Split.length; ++i) {
-            final String[] splitted = polygon2Split[i].split(",");
-            assertEquals(splitted.length, polygon1.get(i).get(0).size());
-
-            for (int j = 0; j < splitted.length ;  ++j) {
-                final String[] latlng = splitted[j].trim().split(" ");
-                assertEquals(Double.parseDouble(latlng[0]), polygon1.get(i).get(0).get(j).lat, 1e-3);
-                assertEquals(Double.parseDouble(latlng[1]), polygon1.get(i).get(0).get(j).lng, 1e-3);
-
+        for (int i = 0; i < polygon2.numPolygons(); i++) {
+            assertEquals(polygon2.getPolygon(i).getExteriorRing().getPoints().size(), polygon1.get(i).get(0).size());
+            for (int j = 0; j < polygon2.getPolygon(i).getExteriorRing().getPoints().size(); j++) {
+                assertEquals(polygon2.getPolygon(i).getExteriorRing().getPoints().get(j).getY(), polygon1.get(i).get(0).get(j).lat, 1e-3);
+                assertEquals(polygon2.getPolygon(i).getExteriorRing().getPoints().get(j).getX(), polygon1.get(i).get(0).get(j).lng, 1e-3);
             }
-
-        }
-        assertEquals(polygon2Split.length, polygon1.size());
-        assertEquals(2, polygon2Split.length);
-        
+        }        
     }
 }

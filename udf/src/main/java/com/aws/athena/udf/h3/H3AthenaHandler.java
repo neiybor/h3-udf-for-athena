@@ -20,6 +20,7 @@ import mil.nga.sf.MultiPolygon;
 import mil.nga.sf.Point;
 import mil.nga.sf.Polygon;
 import mil.nga.sf.wkt.GeometryReader;
+import mil.nga.sf.wkt.GeometryWriter;
 
 /** Lambda that hosts H3 UDFs */
 public class H3AthenaHandler extends UserDefinedFunctionHandler {
@@ -168,6 +169,44 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                 .map(H3AthenaHandler::wktPoint)
                 .collect(Collectors.toList());
     
+    }
+
+    /** Returns a Simple Feature point from an H3 LatLng
+     * @param coord H3 LatLng object
+     * @return SF Point
+     */
+    private static Point sfPoint(LatLng coord) {
+        return new Point(coord.lng, coord.lat);
+    }
+
+    /** Gets the polygon of an H3 index. Returns the result as a WKT Polygon
+     * @param h3 the H3 index
+     * @return String valus that's the WKT representation of the point.
+     * Null when h3 is null.
+     * @throws IOException when fails to write string
+     */
+    public String cell_to_polygon_wkt(Long h3) throws IOException {
+        // return (h3 == null) ? null : null;
+
+        final List<Point> points = h3Core.cellToBoundary(h3).stream()
+                .map(H3AthenaHandler::sfPoint)
+                .collect(Collectors.toList());
+        return GeometryWriter.writeGeometry(new Polygon(new LineString(points)));
+    }
+
+    /** Gets the polygon of an H3 index. Returns the result as a WKT Polygon
+     * @param h3 the H3 index
+     * @return String valus that's the WKT representation of the point.
+     * Null when h3 is null.
+     * @throws IOException when fails to write string
+     */
+    public String cell_to_polygon_wkt(String h3) throws IOException {
+        // return (h3 == null) ? null : null;
+
+        final List<Point> points = h3Core.cellToBoundary(h3).stream()
+                .map(H3AthenaHandler::sfPoint)
+                .collect(Collectors.toList());
+        return GeometryWriter.writeGeometry(new Polygon(new LineString(points)));
     }
     
     /** Finds the boundary of an H3 address for a given coordinate system (lng=longitude, lat=latitude).
