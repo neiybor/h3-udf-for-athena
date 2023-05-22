@@ -2,7 +2,6 @@ package com.aws.athena.udf.h3;
 
 import com.uber.h3core.util.LatLng;
 import com.uber.h3core.H3Core;
-import com.uber.h3core.LengthUnit;
 import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.Assertions;
@@ -21,13 +20,9 @@ import java.util.Random;
  */
 public class H3AthenaHandlerTest 
 {
-
     final private static String LNG = "lng";
-
     final private static String LAT = "lat";
-    
     final private H3AthenaHandler handler;
-
     final private H3Core h3Core;
 
     /**
@@ -40,18 +35,16 @@ public class H3AthenaHandlerTest
         handler = new H3AthenaHandler();
         h3Core = H3Core.newInstance();
     }
+
+    @Test
     public void testlat_lng_to_cell() 
     {
-        
         assertNull(handler.lat_lng_to_cell(null, 10.5, 1));
         assertNull(handler.lat_lng_to_cell(-10.4, null, 2));
         assertNull(handler.lat_lng_to_cell(10.4, 13.2, null));
 
-
         final Random r = new Random();
-
         for (int i=0; i < 1000; ++i) {
-
             final double latitude = Math.random() * 180.0 - 90.0;
             final double longitude = Math.random() * 360.0 - 180.0;
 
@@ -67,25 +60,19 @@ public class H3AthenaHandlerTest
             }
             else {
                 assertFalse(handler.lat_lng_to_cell(latitude, longitude,res)  == h3Core.latLngToCell(latitudeOther, longitudeOther,res));
-
             }
-
-            
         }
     }
 
+    @Test
     public void testlat_lng_to_cell_address() 
     {
-        
         assertNull(handler.lat_lng_to_cell_address(null, 10.5, 1));
         assertNull(handler.lat_lng_to_cell_address(-10.4, null, 2));
         assertNull(handler.lat_lng_to_cell_address(10.4, 13.2, null));
 
-
         final Random r = new Random();
-
         for (int i=0; i < 1000; ++i) {
-
             final double latitude = Math.random() * 180.0 - 90.0;
             final double longitude = Math.random() * 360.0 - 180.0;
 
@@ -101,32 +88,27 @@ public class H3AthenaHandlerTest
             }
             else {
                 assertFalse(handler.lat_lng_to_cell_address(latitude, longitude,res).equals(h3Core.latLngToCellAddress(latitudeOther, longitudeOther,res)));
-
             }
-            
         }
     }
 
+    @Test
     public void testget_icosahedron_faces() {
-
         final double latitude = 43.0;
         final double longitude = -42;
 
         assertNull(handler.get_icosahedron_faces((Long)null));
         assertNull(handler.get_icosahedron_faces((String)null));
-
         for (int i = 0; i < 16; ++i) {
             final Long h3 = handler.lat_lng_to_cell(latitude, longitude, i);
             final Long h3Address = handler.lat_lng_to_cell(latitude, longitude, i);
 
             assertEquals(h3Core.getIcosahedronFaces(h3), handler.get_icosahedron_faces(h3));
             assertEquals(h3Core.getIcosahedronFaces(h3Address), handler.get_icosahedron_faces(h3Address));
-
         }
-
     }
 
-
+    @Test
     public void testgrid_disk() throws Exception {
         final double latitude = 43.0;
         final double longitude = -42;
@@ -142,7 +124,6 @@ public class H3AthenaHandlerTest
 
         assertNull(handler.grid_disk(h3, null));
         assertNull(handler.grid_disk(h3Address, null));
-
 
         final int kmax = 5;
 
@@ -161,6 +142,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void testgrid_ring_unsafe() throws Exception {
         final double latitude = 43.0;
         final double longitude = -42;
@@ -176,7 +158,6 @@ public class H3AthenaHandlerTest
 
         assertNull(handler.grid_ring_unsafe(h3, null));
         assertNull(handler.grid_ring_unsafe(h3Address, null));
-
 
         final int kmax = 5;
 
@@ -195,8 +176,7 @@ public class H3AthenaHandlerTest
         }
     }
 
-
-
+    @Test
     public void test_pentagons() {
         final double latitude = 43.0;
         final double longitude = -42;
@@ -222,15 +202,14 @@ public class H3AthenaHandlerTest
                 assertTrue(handler.is_pentagon(index));
                 assertEquals(h3Core.isPentagon(index), handler.is_pentagon(index));
             }
-
         }
     }
 
+    @Test
     public void testh3_to_geo() {
         assertNull(handler.cell_to_lat_lng((Long)null));
 
         final Random r = new Random();
-
         for (int i=0; i < 1000; ++i) {
             final double latitude = Math.random() * 180.0 - 90.0;
             final double longitude = Math.random() * 360.0 - 180.0;
@@ -249,10 +228,10 @@ public class H3AthenaHandlerTest
             final Long centroidAddr = handler.lat_lng_to_cell(geo.get(0), geo.get(1), res);
 
             assertEquals(handler.cell_to_lat_lng(centroidAddr), geoFromAddress);
-            
         }
     }
 
+    @Test
     public void testcell_to_lat_lng_wkt() {
         assertNull(handler.cell_to_lat_lng_wkt((Long)null));
 
@@ -264,6 +243,7 @@ public class H3AthenaHandlerTest
     }
 
     /** Tests get_resolution functions. */
+    @Test
     public void testget_resolution() {
         final double latitude = 50.0;
         final double longitude = -43;
@@ -279,6 +259,7 @@ public class H3AthenaHandlerTest
         }
     }
 
+    @Test
     public void test_get_base_cell_number() {
         final double latitude = 40.0;
         final double longitude = -42;
@@ -291,12 +272,10 @@ public class H3AthenaHandlerTest
 
         assertEquals(handler.get_base_cell_number(h3), handler.get_base_cell_number(h3Address));
         assertEquals(h3Core.getBaseCellNumber(h3), handler.get_base_cell_number(h3Address));
-
-        
     }
 
+    @Test
     public void teststring_to_h3_two_ways() {
-
         final double latitude = Math.random() * 180.0 - 90.0;
         final double longitude = Math.random() * 360.0 - 180.0;
         
@@ -312,6 +291,7 @@ public class H3AthenaHandlerTest
 
 
     /** Tests cell_to_boundary_wkt functions  */
+    @Test
     public void testcell_to_boundary_wkt() {
         assertNull(handler.cell_to_boundary_wkt((Long)null));
         assertNull(handler.cell_to_boundary_wkt((String)null));
@@ -333,37 +313,42 @@ public class H3AthenaHandlerTest
                       handler.cell_to_boundary_wkt(h3));
         assertEquals( Arrays.asList(boundaries), 
                       handler.cell_to_boundary_wkt(h3Address));
-
     } 
 
+    @Test
     public void testgrid_path_cells() throws Exception {
         final double latitude = 52.0;
         final double longitude = -4.3;
 
         for (int res = 2; res < 16; ++res) {
-        
             final Long h3 = handler.lat_lng_to_cell(latitude, longitude, res);
-            final String h3Address = handler.lat_lng_to_cell_address(latitude, longitude, res);
-
             for (final Long index : handler.grid_disk(h3, 5)) {
                 final List<Long> line = handler.grid_path_cells(h3, index);
-                final List<Long> lineAddr = handler.grid_path_cells(h3, index);
-
                 assertEquals(line.get(0), h3);
                 assertEquals(line.get(line.size() -1), index);
                 
                 for (int i = 0; i < line.size(); ++i) {
                     assertEquals(i, handler.grid_distance(h3, line.get(i)));
-                    assertEquals(i, handler.grid_distance(h3, lineAddr.get(i)));
+                }
+            }
+
+            final String h3Address = handler.lat_lng_to_cell_address(latitude, longitude, res);
+            for (final String index : handler.grid_disk(h3Address, 5)) {
+                final List<String> lineAddr = handler.grid_path_cells(h3Address, index);
+                assertEquals(lineAddr.get(0), h3Address);
+                assertEquals(lineAddr.get(lineAddr.size() -1), index);
+                
+                for (int i = 0; i < lineAddr.size(); ++i) {
+                    assertEquals(i, handler.grid_distance(h3Address, lineAddr.get(i)));
                 }
             }
         }
         assertNull(handler.grid_path_cells(handler.lat_lng_to_cell(latitude, longitude, 5), null));
         assertNull(handler.grid_path_cells((Long)null, handler.lat_lng_to_cell(latitude, longitude, 3)));
         assertNull(handler.grid_path_cells((String)null, handler.lat_lng_to_cell_address(latitude, longitude, 3)));
-
     }
 
+    @Test
     public void testh3_parent() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -381,10 +366,9 @@ public class H3AthenaHandlerTest
         final Long directParent = handler.cell_direct_parent(h3);
         assertEquals(handler.get_resolution(h3) -1, 
                      handler.get_resolution(directParent));
-
     }
 
-
+    @Test
     public void testcell_to_center_child() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -402,9 +386,9 @@ public class H3AthenaHandlerTest
                     handler.cell_to_center_child(h3, res + 1));
         assertEquals(h3Core.cellToCenterChild(h3Address, res + 1),
                     handler.cell_to_center_child(h3Address, res + 1));
-
     }
 
+    @Test
     public void testcompact_uncompact() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -434,12 +418,10 @@ public class H3AthenaHandlerTest
                             handler.uncompact_cells(compacted, res + 3 ));
             assertEquals(h3Core.uncompactCellAddresses(compactedAddress, res + 3), 
                             handler.uncompact_cell_addresses(compactedAddress, res + 3));
-            
-
         }
-
     }
 
+    @Test
     public void testh3_descendants() {
         final double latitude = 52.0;
         final double longitude = -4.3;
@@ -471,19 +453,16 @@ public class H3AthenaHandlerTest
             assertTrue(handler.get_resolution(desc) > res &&
                       handler.get_resolution(desc) <= res + 5);
         }
-
-
     }
 
 
     /** Tests cell_to_boundary functions as well as cell_to_boundary_sys. */
+    @Test
     public void testcell_to_boundary() {
-
         assertNull(handler.cell_to_boundary((Long)null, ","));
         assertNull(handler.cell_to_boundary((String)null, ","));
         assertNull(handler.cell_to_boundary_sys((Long)null, LNG));
         assertNull(handler.cell_to_boundary_sys((String)null, LNG));
-
         
         final double latitude = 50.0;
         final double longitude = -43;
@@ -500,7 +479,6 @@ public class H3AthenaHandlerTest
 
         Assertions.assertThrows(IllegalArgumentException.class,
                         () -> handler.cell_to_boundary_sys(h3, "unk"));
-
 
         for (int i = 0; i < 6; ++i) {
             
@@ -534,6 +512,7 @@ public class H3AthenaHandlerTest
         }       
     }
 
+    @Test
     public void testis_valid_cell() {
         final double latitude = Math.random() * 180.0 - 90.0;
         final double longitude = Math.random() * 360.0 - 180.0;
@@ -549,6 +528,7 @@ public class H3AthenaHandlerTest
         assertFalse(handler.is_valid_cell((String)null));
     }
 
+    @Test
     public void testis_res_class_iii() {
         final long h3False = 622506764662964223L;
         final long h3True = 617420388352917503L;
@@ -563,42 +543,84 @@ public class H3AthenaHandlerTest
         assertFalse(handler.is_res_class_iii((String)null));
     }
 
-    public void testpolygon_to_cells() {
-        final String polygonWKT = "POLYGON((43.604652 1.444209, 47.218371 -1.553621, 50.62925 3.05726, 48.864716 2.349014, 43.6961 7.27178, 43.604652 1.444209))";
+    @Test
+    public void testpolygon_to_cells() throws Exception {
+        final String polygonWKT = 
+            "POLYGON ((1.444209 43.604652, -1.553621 47.218371, 3.05726 50.62925, 2.349014 48.864716, 7.27178 43.6961, 1.444209 43.604652))";
         final List<LatLng> latLngPoints = List.of(new LatLng(43.604652,1.444209),
                                                       new LatLng(47.218371, -1.553621),
                                                       new LatLng(50.62925, 3.05726),
                                                       new LatLng(48.864716, 2.349014),
                                                       new LatLng(43.6961, 7.27178),
                                                       new LatLng(43.604652, 1.444209));
-        final String polygonWKTAlt = "POLYGON  ((43.604652 1.444209, 47.218371 -1.553621, 50.62925 3.05726, 48.864716 2.349014, 43.6961 7.27178, 43.604652 1.444209))";
+        final String polygonWKTAlt = 
+            "POLYGON ((1.444209 43.604652, -1.553621 47.218371, 3.05726 50.62925, 2.349014 48.864716, 7.27178 43.6961, 1.444209 43.604652))";
 
         final List<List<LatLng>>  empty = new LinkedList<>();
 
         for (int i = 0; i <= 5 ;++i) {
             assertEquals(h3Core.polygonToCells(latLngPoints, empty, i), handler.polygon_to_cells(polygonWKT, i));
             assertEquals(handler.polygon_to_cells(polygonWKT, i), handler.polygon_to_cells(polygonWKTAlt, i));
-
         }
     }
 
-    public void testpolygon_to_cell_addresses() {
-        final String polygonWKT = "POLYGON((43.604652 1.444209, 47.218371 -1.553621, 50.62925 3.05726, 48.864716 2.349014, 43.6961 7.27178, 43.604652 1.444209))";
+    // @Test
+    public void testpolygon_to_cell_addresses() throws Exception{
+        final String polygonWKT = 
+            "POLYGON ((1.444209 43.604652, -1.553621 47.218371, 3.05726 50.62925, 2.349014 48.864716, 7.27178 43.6961, 1.444209 43.604652))";
         final List<LatLng> latLngPoints = List.of(new LatLng(43.604652,1.444209),
                                                       new LatLng(47.218371, -1.553621),
                                                       new LatLng(50.62925, 3.05726),
                                                       new LatLng(48.864716, 2.349014),
                                                       new LatLng(43.6961, 7.27178),
                                                       new LatLng(43.604652, 1.444209));
-        final String polygonWKTAlt = "POLYGON ((43.604652 1.444209, 47.218371 -1.553621, 50.62925 3.05726, 48.864716 2.349014, 43.6961 7.27178, 43.604652 1.444209))";
 
-        final List<List<LatLng>>  empty = new LinkedList<>();
+        final String polygonWKTAlt = 
+            "POLYGON ((1.444209 43.604652, -1.553621 47.218371, 3.05726 50.62925, 2.349014 48.864716, 7.27178 43.6961, 1.444209 43.604652))";
+
+        final List<List<LatLng>> empty = new LinkedList<>();
 
         for (int i = 0; i <= 5 ;++i) {
             assertEquals(h3Core.polygonToCellAddresses(latLngPoints, empty, i), handler.polygon_to_cell_addresses(polygonWKT, i));
             assertEquals(handler.polygon_to_cell_addresses(polygonWKT, i), handler.polygon_to_cell_addresses(polygonWKTAlt, i));
-
         }
+
+        final String multiPolygonWKT = "MULTIPOLYGON (((-112.13417747722622 40.48305525857179, -112.07601701040902 40.40458400920371, -112.14044403871432 40.327152363986706, -112.08236892255083 40.24855573342874, -111.95994978862437 40.24734787912595, -111.9020429024643 40.16858374280796, -111.77968666606233 40.16717680240547, -111.71504793475805 40.244544265218366, -111.59256744172903 40.2429483824467, -111.52771940855304 40.32016865585556, -111.5854551484613 40.39901752493811, -111.5205009128757 40.47612241452489, -111.57832080748169 40.55484644293405, -111.70118207844375 40.556423521944474, -111.75917340878016 40.63497990483772, -111.88210082412408 40.63635632640663, -111.9468454993574 40.55918644383781, -112.06964540143417 40.56037241099826), (-111.88876877847025 40.48067243111808, -111.76603234430006 40.47928592430941, -111.70812573681557 40.40060396307876, -111.77287006403081 40.32335096944806, -111.89541610612225 40.32474764935123, -111.95340778646954 40.403387143348745)))";
+        final List<LatLng> multiPolyLatLngPoints = List.of( 
+            new LatLng(40.48305525857179, -112.13417747722622),
+            new LatLng(40.40458400920371, -112.07601701040902),
+            new LatLng(40.327152363986706, -112.14044403871432),
+            new LatLng(40.24855573342874, -112.08236892255083),
+            new LatLng(40.24734787912595, -111.95994978862437),
+            new LatLng(40.16858374280796, -111.9020429024643),
+            new LatLng(40.16717680240547, -111.77968666606233),
+            new LatLng(40.244544265218366, -111.71504793475805),
+            new LatLng(40.2429483824467, -111.59256744172903),
+            new LatLng(40.32016865585556, -111.52771940855304),
+            new LatLng(40.39901752493811, -111.5854551484613),
+            new LatLng(40.47612241452489, -111.5205009128757),
+            new LatLng(40.55484644293405, -111.57832080748169),
+            new LatLng(40.556423521944474, -111.70118207844375),
+            new LatLng(40.63497990483772, -111.75917340878016),
+            new LatLng(40.63635632640663, -111.88210082412408),
+            new LatLng(40.55918644383781, -111.9468454993574),
+            new LatLng(40.56037241099826, -112.06964540143417)
+        );
+
+        final List<List<LatLng>> holeLists = new LinkedList<>();
+        holeLists.add(List.of(
+            new LatLng(40.48067243111808, -111.88876877847025),
+            new LatLng(40.47928592430941, -111.76603234430006),
+            new LatLng(40.40060396307876, -111.70812573681557),
+            new LatLng(40.32335096944806, -111.77287006403081),
+            new LatLng(40.32474764935123, -111.89541610612225),
+            new LatLng(40.403387143348745, -111.95340778646954)
+        ));
+
+        for (int i = 0; i <= 9 ;++i) {
+            assertEquals(h3Core.polygonToCellAddresses(multiPolyLatLngPoints, holeLists, i), handler.polygon_to_cell_addresses(multiPolygonWKT, i));
+        }
+        
     }
 
     public void testcells_to_multipolygon() {

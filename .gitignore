@@ -1,0 +1,5 @@
+.DS_Store
+.vscode/*
+infrastructure/cdk.out
+infrastructure/target
+udf/target

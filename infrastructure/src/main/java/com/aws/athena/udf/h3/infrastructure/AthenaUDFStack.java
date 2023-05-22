@@ -58,13 +58,12 @@ public class AthenaUDFStack extends Stack {
 
 
         // Creates the UDF.
-        final Function  udf = new Function(this, "H3AthenaHandler", FunctionProps.builder()
+        new Function(this, "H3AthenaHandler", FunctionProps.builder()
                 .runtime(Runtime.JAVA_11)
-                .code(Code.fromAsset("../", AssetOptions.builder()
-                        .bundling(builderOptions
-                                .command(udfPkgCommand)
-                                .build())
-                        .build()))
+                .code(
+                        Code.fromAsset("../", 
+                        AssetOptions.builder().bundling(builderOptions.command(udfPkgCommand).build()).build())
+                )
                 .handler("com.aws.athena.udf.h3.H3AthenaHandler")
                 .memorySize(MEMORY_SIZE)
                 .timeout(Duration.seconds(TIMEOUT))

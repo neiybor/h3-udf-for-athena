@@ -13,9 +13,8 @@ public class DeployApp {
         final App app = new App();
 
         new AthenaUDFStack(app, "H3AthenaUDF", StackProps.builder()
-                .env(Environment.builder().build())
-                .build());
-
+            .env(Environment.builder().build())
+            .build());
         app.synth();
     }
 }
