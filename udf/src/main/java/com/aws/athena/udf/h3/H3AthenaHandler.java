@@ -1000,14 +1000,46 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                                                     .collect(Collectors.toList());
     }
 
-    /** Average hexagon area in unit of area at the given resolution. 
-     *  @param res resolution 
-     *  @param unit the unit of area, km2 or m2.
+    /**  Area in unit of area for a given H3 cell.
+     *  @param h3 The cell from which to retrieve the area 
+     *  @param unit the unit of area: rads2, km2 or m2.
      *  @return the area. 
      */
-    public Double cell_area(Integer res, String unit) {
-        return res == null || unit == null ? null : 
-            h3Core.cellArea(res, AreaUnit.valueOf(unit));
+    public Double cell_area(Long h3, String unit) {
+        return h3 == null || unit == null ? null : 
+            h3Core.cellArea(h3, AreaUnit.valueOf(unit));
+    }
+
+    /**  Area in unit of area for a given H3 cell. 
+     *  @param h3 The cell from which to retrieve the area 
+     *  @param unit the unit of area: rads2, km2 or m2.
+     *  @return the area. 
+     */
+    public Double cell_area(String h3, String unit) {
+        return h3 == null || unit == null ? null : 
+            h3Core.cellArea(h3, AreaUnit.valueOf(unit));
+    }
+    
+    /**  Edge length in given unit a given H3 cell.
+     *  @param h3 The cell from which to retrieve the edge length 
+     *  @param unit the unit of length, rads, km or m.
+     *  @return the length. 
+     */
+    public Double cell_edge_length(Long h3, String unit) {
+        return h3 == null || unit == null ? null : 
+           h3Core.edgeLength(h3Core.originToDirectedEdges(h3).get(0), 
+            LengthUnit.valueOf(unit)); 
+    }
+
+    /**  Edge length in given unit a given H3 cell.
+     *  @param h3 The cell from which to retrieve the edge length 
+     *  @param unit the unit of length, rads, km or m.
+     *  @return the length. 
+     */
+    public Double cell_edge_length(String h3, String unit) {
+        return h3 == null || unit == null ? null : 
+           h3Core.edgeLength(h3Core.originToDirectedEdges(h3).get(0), 
+            LengthUnit.valueOf(unit)); 
     }
 
     /** Average hexagon edge length  at a given resolution.
