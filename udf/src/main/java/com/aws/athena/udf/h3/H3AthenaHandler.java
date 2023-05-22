@@ -171,14 +171,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     
     }
 
-    /** Returns a Simple Feature point from an H3 LatLng
-     * @param coord H3 LatLng object
-     * @return SF Point
-     */
-    private static Point sfPoint(LatLng coord) {
-        return new Point(coord.lng, coord.lat);
-    }
-
     /** Gets the polygon of an H3 index. Returns the result as a WKT Polygon
      * @param h3 the H3 index
      * @return String valus that's the WKT representation of the point.
@@ -1075,5 +1067,13 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
 
     private static String wktPoint(LatLng coord) {
         return String.format("POINT (%f %f)", coord.lng, coord.lat);
+    }
+
+    /** Returns a Simple Feature point from an H3 LatLng
+     * @param coord H3 LatLng object
+     * @return SF Point
+     */
+    private static Point sfPoint(LatLng coord) {
+        return new Point(coord.lng, coord.lat);
     }
 }

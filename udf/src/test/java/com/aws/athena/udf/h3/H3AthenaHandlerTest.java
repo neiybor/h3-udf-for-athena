@@ -628,7 +628,6 @@ public class H3AthenaHandlerTest
             Set<String> handlerSet = new HashSet<String>(handler.polygon_to_cell_addresses(multiPolygonWKT, i));
             assertEquals(h3CoreSet, handlerSet);
         }
-        
     }
 
     @Test
@@ -672,5 +671,18 @@ public class H3AthenaHandlerTest
                 assertEquals(polygon2.getPolygon(i).getExteriorRing().getPoints().get(j).getX(), polygon1.get(i).get(0).get(j).lng, 1e-3);
             }
         }        
+    }
+
+    @Test
+    public void testcell_to_polygon_wkt() throws IOException {
+        final Long h3Index = 613222795972706303L;
+        final String h3Address = "8829ae24a1fffff";
+        final String expectedWkt = "POLYGON ((-119.02139761835724 36.05942129044025, -119.0167966690077 36.06289160506429, -119.01809616500682 36.06773577233441, -119.02399698819565 36.06910946195461, -119.02859780617965 36.06563901217622, -119.02729793238377 36.06079500794434))";
+
+        String polygonWkt = handler.cell_to_polygon_wkt(h3Index);
+        String polygonWktAddress = handler.cell_to_polygon_wkt(h3Address);
+
+        assertEquals(polygonWkt, expectedWkt);
+        assertEquals(polygonWktAddress, expectedWkt);     
     }
 }
