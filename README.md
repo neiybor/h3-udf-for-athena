@@ -4,6 +4,7 @@ Forked from [aws-samples/h3-udf-for-athena](https://github.com/aws-samples/h3-ud
 
 - Readded `@Test` annotations for JUnit tests
 - Modified functions to work with GeoJSON-style WKT text, where coordinates are in the form of `longitude` `latitude`, as opposed to `latitude` `longitude`
+- Using the [NGA Simple Features Java](https://github.com/ngageoint/simple-features-java) to perform WKT parsing and Geometry manipulation
 
 ---
 
@@ -15,8 +16,9 @@ We include code for the [AWS Lambda](https://aws.amazon.com/lambda/) function th
 
 ## How to use
 
-- Package the UDF by going to udf directory, and launch `mvn clean package`.
-- Run `cdk deploy` in the infrastructure directory of the repository.  
+- Package the UDF by going to the `udf` directory and running `mvn clean package`
+- Run tests by going to the `udf` directory and running `mvn clean test`
+- Run `cdk deploy` in the infrastructure directory of the repository
 
 ## Security
 
