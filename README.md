@@ -1,4 +1,4 @@
-# H3 UDF for Athena
+# H3 User Defined Function(s) (UDF) for Athena
 
 Forked from [aws-samples/h3-udf-for-athena](https://github.com/aws-samples/h3-udf-for-athena) for use at Neighbor. Differences include the following changes:
 
