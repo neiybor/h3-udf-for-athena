@@ -20,6 +20,7 @@ import mil.nga.sf.MultiPolygon;
 import mil.nga.sf.Point;
 import mil.nga.sf.Polygon;
 import mil.nga.sf.wkt.GeometryReader;
+import mil.nga.sf.wkt.GeometryWriter;
 
 /** Lambda that hosts H3 UDFs */
 public class H3AthenaHandler extends UserDefinedFunctionHandler {
@@ -168,6 +169,36 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                 .map(H3AthenaHandler::wktPoint)
                 .collect(Collectors.toList());
     
+    }
+
+    /** Gets the polygon of an H3 index. Returns the result as a WKT Polygon
+     * @param h3 the H3 index
+     * @return String valus that's the WKT representation of the point.
+     * Null when h3 is null.
+     * @throws IOException when fails to write string
+     */
+    public String cell_to_polygon_wkt(Long h3) throws IOException {
+        // return (h3 == null) ? null : null;
+
+        final List<Point> points = h3Core.cellToBoundary(h3).stream()
+                .map(H3AthenaHandler::sfPoint)
+                .collect(Collectors.toList());
+        return GeometryWriter.writeGeometry(new Polygon(new LineString(points)));
+    }
+
+    /** Gets the polygon of an H3 index. Returns the result as a WKT Polygon
+     * @param h3 the H3 index
+     * @return String valus that's the WKT representation of the point.
+     * Null when h3 is null.
+     * @throws IOException when fails to write string
+     */
+    public String cell_to_polygon_wkt(String h3) throws IOException {
+        // return (h3 == null) ? null : null;
+
+        final List<Point> points = h3Core.cellToBoundary(h3).stream()
+                .map(H3AthenaHandler::sfPoint)
+                .collect(Collectors.toList());
+        return GeometryWriter.writeGeometry(new Polygon(new LineString(points)));
     }
     
     /** Finds the boundary of an H3 address for a given coordinate system (lng=longitude, lat=latitude).
@@ -969,14 +1000,46 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
                                                     .collect(Collectors.toList());
     }
 
-    /** Average hexagon area in unit of area at the given resolution. 
-     *  @param res resolution 
-     *  @param unit the unit of area, km2 or m2.
+    /**  Area in unit of area for a given H3 cell.
+     *  @param h3 The cell from which to retrieve the area 
+     *  @param unit the unit of area: rads2, km2 or m2.
      *  @return the area. 
      */
-    public Double cell_area(Integer res, String unit) {
-        return res == null || unit == null ? null : 
-            h3Core.cellArea(res, AreaUnit.valueOf(unit));
+    public Double cell_area(Long h3, String unit) {
+        return h3 == null || unit == null ? null : 
+            h3Core.cellArea(h3, AreaUnit.valueOf(unit));
+    }
+
+    /**  Area in unit of area for a given H3 cell. 
+     *  @param h3 The cell from which to retrieve the area 
+     *  @param unit the unit of area: rads2, km2 or m2.
+     *  @return the area. 
+     */
+    public Double cell_area(String h3, String unit) {
+        return h3 == null || unit == null ? null : 
+            h3Core.cellArea(h3, AreaUnit.valueOf(unit));
+    }
+    
+    /**  Edge length in given unit a given H3 cell.
+     *  @param h3 The cell from which to retrieve the edge length 
+     *  @param unit the unit of length, rads, km or m.
+     *  @return the length. 
+     */
+    public Double cell_edge_length(Long h3, String unit) {
+        return h3 == null || unit == null ? null : 
+           h3Core.edgeLength(h3Core.originToDirectedEdges(h3).get(0), 
+            LengthUnit.valueOf(unit)); 
+    }
+
+    /**  Edge length in given unit a given H3 cell.
+     *  @param h3 The cell from which to retrieve the edge length 
+     *  @param unit the unit of length, rads, km or m.
+     *  @return the length. 
+     */
+    public Double cell_edge_length(String h3, String unit) {
+        return h3 == null || unit == null ? null : 
+           h3Core.edgeLength(h3Core.originToDirectedEdges(h3).get(0), 
+            LengthUnit.valueOf(unit)); 
     }
 
     /** Average hexagon edge length  at a given resolution.
@@ -1036,5 +1099,13 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
 
     private static String wktPoint(LatLng coord) {
         return String.format("POINT (%f %f)", coord.lng, coord.lat);
+    }
+
+    /** Returns a Simple Feature point from an H3 LatLng
+     * @param coord H3 LatLng object
+     * @return SF Point
+     */
+    private static Point sfPoint(LatLng coord) {
+        return new Point(coord.lng, coord.lat);
     }
 }
