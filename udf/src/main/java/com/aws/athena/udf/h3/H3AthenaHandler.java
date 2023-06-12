@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import mil.nga.sf.LinearRing;
 import mil.nga.sf.LineString;
 import mil.nga.sf.MultiPolygon;
 import mil.nga.sf.Point;
@@ -178,12 +179,12 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @throws IOException when fails to write string
      */
     public String cell_to_polygon_wkt(Long h3) throws IOException {
-        // return (h3 == null) ? null : null;
+        if (h3 == null) { return null; }
 
         final List<Point> points = h3Core.cellToBoundary(h3).stream()
                 .map(H3AthenaHandler::sfPoint)
                 .collect(Collectors.toList());
-        return GeometryWriter.writeGeometry(new Polygon(new LineString(points)));
+        return GeometryWriter.writeGeometry(new Polygon(new LinearRing(points)));
     }
 
     /** Gets the polygon of an H3 index. Returns the result as a WKT Polygon
@@ -193,12 +194,12 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
      * @throws IOException when fails to write string
      */
     public String cell_to_polygon_wkt(String h3) throws IOException {
-        // return (h3 == null) ? null : null;
+        if (h3 == null) { return null; }
 
         final List<Point> points = h3Core.cellToBoundary(h3).stream()
                 .map(H3AthenaHandler::sfPoint)
                 .collect(Collectors.toList());
-        return GeometryWriter.writeGeometry(new Polygon(new LineString(points)));
+        return GeometryWriter.writeGeometry(new Polygon(new LinearRing(points)));
     }
     
     /** Finds the boundary of an H3 address for a given coordinate system (lng=longitude, lat=latitude).
@@ -673,36 +674,6 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
         return result;
     }
 
-    /**
-     * 
-     * @param Polygon the Simple Feature Polygon
-     * @param res the resolution
-     * @return H3 indexes
-     */
-    private List<Long> sf_polygon_to_cells(Polygon pg, Integer res) {
-        final List<LatLng> exteriorCoordPoints = new LinkedList<>();
-        final List<List<LatLng>> holeLists = new LinkedList<>();
-
-        for (final Point p : pg.getExteriorRing().getPoints()) {
-            Double lng = p.getX();
-            Double lat = p.getY();
-            exteriorCoordPoints.add(new LatLng(lat, lng));
-        }
-
-        // For each interior ring, create a hole
-        for (int r = 0; r < pg.numInteriorRings() ; r++) {
-            final LineString ir = pg.getInteriorRing(r);
-            final List<LatLng> interiorCoordPoints = new LinkedList<>();
-            for (final Point p : ir.getPoints()) {
-                Double lng = p.getX();
-                Double lat = p.getY();
-                interiorCoordPoints.add(new LatLng(lat, lng));
-            }
-            holeLists.add(interiorCoordPoints);
-        }
-        return h3Core.polygonToCells(exteriorCoordPoints, holeLists, res);
-    }
-
     /** Receives a polygon WKT without holes, and resolution, and find all H3 objects whose center located inside the polygon
      *  @param polygon the polygon WKT
      *  @param res the resolution.
@@ -734,21 +705,25 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
     }
 
     /**
-     * 
      * @param Polygon the Simple Feature Polygon
-     * @param res the resolution
-     * @return H3 indexes
+     * @return List of coordinates for the exterior
      */
-    private List<String> sf_polygon_to_cell_addresses(Polygon pg, Integer res) {
+    private List<LatLng> sf_polygon_to_exterior_points(Polygon pg) {
         final List<LatLng> exteriorCoordPoints = new LinkedList<>();
-        final List<List<LatLng>> holeLists = new LinkedList<>();
-
         for (final Point p : pg.getExteriorRing().getPoints()) {
             Double lng = p.getX();
             Double lat = p.getY();
             exteriorCoordPoints.add(new LatLng(lat, lng));
         }
+        return exteriorCoordPoints;
+    }
 
+    /**
+     * @param Polygon the Simple Feature Polygon
+     * @return List of coordinates for the exterior
+     */
+    private List<List<LatLng>> sf_polygon_to_hole_lists(Polygon pg) {
+        final List<List<LatLng>> holeLists = new LinkedList<>();
         // For each interior ring, create a hole
         for (int r = 0; r < pg.numInteriorRings() ; r++) {
             final LineString ir = pg.getInteriorRing(r);
@@ -760,6 +735,28 @@ public class H3AthenaHandler extends UserDefinedFunctionHandler {
             }
             holeLists.add(interiorCoordPoints);
         }
+        return holeLists;
+    }
+
+    /**
+     * @param Polygon the Simple Feature Polygon
+     * @param res the resolution
+     * @return H3 indexes
+     */
+    private List<Long> sf_polygon_to_cells(Polygon pg, Integer res) {
+        final List<LatLng> exteriorCoordPoints = sf_polygon_to_exterior_points(pg);
+        final List<List<LatLng>> holeLists = sf_polygon_to_hole_lists(pg);
+        return h3Core.polygonToCells(exteriorCoordPoints, holeLists, res);
+    }
+
+    /**
+     * @param Polygon the Simple Feature Polygon
+     * @param res the resolution
+     * @return H3 indexes
+     */
+    private List<String> sf_polygon_to_cell_addresses(Polygon pg, Integer res) {
+        final List<LatLng> exteriorCoordPoints = sf_polygon_to_exterior_points(pg);
+        final List<List<LatLng>> holeLists = sf_polygon_to_hole_lists(pg);
         return h3Core.polygonToCellAddresses(exteriorCoordPoints, holeLists, res);
     }
     
