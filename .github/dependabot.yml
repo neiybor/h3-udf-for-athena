@@ -1,0 +1,27 @@
+version: 2
+updates:
+  # Enable version updates for Maven dependencies
+  - package-ecosystem: "maven"
+    directory: "/udf"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      junit:
+        patterns:
+          - "org.junit.*"
+      aws:
+        patterns:
+          - "com.amazonaws*"
+    labels:
+      - "dependencies"
+      - "java"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
